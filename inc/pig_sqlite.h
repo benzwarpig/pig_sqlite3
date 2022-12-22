@@ -21,6 +21,16 @@ public:
 
     bool loadDB(const std::string& dbName);
 
+    /***************** sysinfo 管理部分 *****************/
+    // 设置单个SysInfo
+    void setSysInfo(const std::string& name, const std::string& value);
+    // 删除单个SysInfo
+    bool delSysInfo(const std::string& name);
+    // 获取单个SysInfo
+    std::string getSysInfo(const std::string& name);
+    // 获取所有的SysInfo
+    std::map<std::string, std::string> getSysInfo();
+
 private:
     auto getStorage();
 
@@ -29,7 +39,8 @@ private:
     bool m_isLoad{false};
 
 private:
-    static constexpr const char* k_pigSlogan = "pig_slogan";
+    friend class SqliteHandler;
+    static constexpr const char* k_pigSlogan{"pig_slogan"};
 };
 
 };  // namespace pig_sqlite

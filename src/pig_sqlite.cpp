@@ -33,4 +33,35 @@ bool SqliteImpl::loadDB(const std::string& dbName) {
     return true;
 }
 
+void SqliteImpl::setSysInfo(const std::string& name, const std::string& value) {
+    auto storage = getStorage();
+    SysInfo sysInfo{name, value};
+    storage.replace(sysInfo);
+}
+
+bool SqliteImpl::delSysInfo(const std::string& name) {
+    auto storage = getStorage();
+    storage.remove_all<SysInfo>(where(c(&SysInfo::name) == name));
+    return true;
+}
+
+std::string SqliteImpl::getSysInfo(const std::string& name) {
+    auto storage = getStorage();
+    auto sysInfoPtr = storage.get_pointer<SysInfo>(name);
+    if (sysInfoPtr) {
+        return sysInfoPtr->value;
+    }
+    return "";
+}
+
+std::map<std::string, std::string> SqliteImpl::getSysInfo() {
+    std::map<std::string, std::string> kvmap;
+    auto storage = getStorage();
+    auto result = storage.get_all_pointer<SysInfo>();
+    for (auto& rec : result) {
+        kvmap.emplace(rec->name, rec->value);
+    }
+    return kvmap;
+}
+
 };  // namespace pig_sqlite

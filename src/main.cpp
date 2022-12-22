@@ -13,7 +13,18 @@ int main() {
 
     pig_sqlite::SqliteHandler pigSqlite;
     if (!pigSqlite.init()) {
+        printf("pig sqlite init failure !!!");
     }
+    printf("\r\n");
+
+    pigSqlite.setPigSlogan("benzs_war_pig");
+    auto slogan = pigSqlite.getPigSlogan();
+
+    printf("pig_slogan is : {%s}\r\n", slogan.c_str());
+
+    pigSqlite.delPigSlogan();
+    slogan = pigSqlite.getPigSlogan();
+    printf("pig_slogan is : {%s}\r\n", slogan.c_str());
 
     return 0;
 }

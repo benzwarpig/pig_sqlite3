@@ -12,6 +12,12 @@ public:
 public:
     bool init();
 
+    bool setPigSlogan(const std::string& value);
+
+    bool delPigSlogan();
+
+    std::string getPigSlogan();
+
 private:
     std::shared_ptr<SqliteImpl> m_impl;
 };
