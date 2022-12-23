@@ -13,7 +13,13 @@ auto SqliteImpl::getStorage() {
         // 系统信息字典
         make_table("table_sys_info",
                    make_column("name", &SysInfo::name, primary_key()),
-                   make_column("value", &SysInfo::value)));
+                   make_column("value", &SysInfo::value)),
+        make_table("table_map_mark_info",
+                   make_column("markId", &MapMarkInfo::markId, autoincrement(),
+                               primary_key()),
+                   make_column("mapId", &MapMarkInfo::mapId),
+                   make_column("markType", &MapMarkInfo::markType),
+                   make_column("commit", &MapMarkInfo::commit)));
 
     return storage;
 }
@@ -62,6 +68,48 @@ std::map<std::string, std::string> SqliteImpl::getSysInfo() {
         kvmap.emplace(rec->name, rec->value);
     }
     return kvmap;
+}
+
+void SqliteImpl::setMapMarkInfo(const MapMarkInfo& info,
+                                const std::string& commit) {
+    auto storage = getStorage();
+    MapMarkInfo tmp;
+    tmp.commit.clear();
+    tmp.markId = info.markId;
+    auto markVector = storage.get_all_pointer<MapMarkInfo>(
+        where(c(&MapMarkInfo::mapId) == info.mapId and /* NOLINT */
+              c(&MapMarkInfo::markType) == info.markType));
+    if (markVector.size() != 0) {
+        // 已存在则替换
+        printf("mapId:{%s},markType:{%s}\r\n", info.mapId.c_str(),
+               info.markType.c_str());
+        tmp.markId = markVector.at(0)->markId;
+    }
+    tmp.mapId = info.mapId;
+    tmp.markType = info.markType;
+    tmp.commit = commit;
+    printf("replace,markId:{%d},mapId:{%s},markType:{%s} \r\n", tmp.markId,
+           tmp.mapId.c_str(), tmp.markType.c_str());
+    storage.replace(tmp);
+}
+
+std::string SqliteImpl::getMapMarkInfo(const std::string& mapId,
+                                       const std::string& markType) {
+    auto storage = getStorage();
+    auto markPtr = storage.get_all_pointer<MapMarkInfo>(
+        where(c(&MapMarkInfo::mapId) == mapId and /* NOLINT */
+              c(&MapMarkInfo::markType) == markType));
+    std::string ret = "";
+    for (const auto& tmp : markPtr) {
+        ret = tmp->commit;
+    }
+    return ret;
+}
+
+bool SqliteImpl::delMapMarkInfo(const std::string& mapId) {
+    auto storage = getStorage();
+    storage.remove_all<MapMarkInfo>(where(c(&MapMarkInfo::mapId) == mapId));
+    return true;
 }
 
 };  // namespace pig_sqlite

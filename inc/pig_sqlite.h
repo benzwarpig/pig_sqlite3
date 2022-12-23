@@ -14,6 +14,13 @@ struct SysInfo {
     std::string value;  // 值
 };
 
+struct MapMarkInfo {
+    int markId;
+    std::string mapId;
+    std::string markType;
+    std::string commit;
+};
+
 class SqliteImpl {
 public:
     SqliteImpl();
@@ -30,6 +37,17 @@ public:
     std::string getSysInfo(const std::string& name);
     // 获取所有的SysInfo
     std::map<std::string, std::string> getSysInfo();
+
+    /*************** MapMarkInfo 管理部分 ***************/
+    // 设置地图标记信息属性
+    void setMapMarkInfo(const MapMarkInfo& info, const std::string& commit);
+
+    // 获取地图标记属性
+    std::string getMapMarkInfo(const std::string& mapId,
+                               const std::string& markType);
+
+    // 删除对应地图的标记信息
+    bool delMapMarkInfo(const std::string& mapId);
 
 private:
     auto getStorage();

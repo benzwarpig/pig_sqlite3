@@ -18,6 +18,11 @@ public:
 
     std::string getPigSlogan();
 
+    void setMapMarkInfo(const std::string& mapId, const std::string& markType,
+                        const std::string& commit);
+
+    bool delMapMarkInfo(const std::string& mapId);
+
 private:
     std::shared_ptr<SqliteImpl> m_impl;
 };

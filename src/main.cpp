@@ -22,9 +22,14 @@ int main() {
 
     printf("pig_slogan is : {%s}\r\n", slogan.c_str());
 
-    pigSqlite.delPigSlogan();
-    slogan = pigSqlite.getPigSlogan();
-    printf("pig_slogan is : {%s}\r\n", slogan.c_str());
+    // pigSqlite.delPigSlogan();
+    // slogan = pigSqlite.getPigSlogan();
+    // printf("pig_slogan is : {%s}\r\n", slogan.c_str());
+
+    pigSqlite.setMapMarkInfo("map_2", "collide", "333 this is map_2 collide");
+    pigSqlite.setMapMarkInfo("map_2", "cliff", "666 this is map_2 collide");
+
+    // pigSqlite.delMapMarkInfo("map_2");
 
     return 0;
 }
