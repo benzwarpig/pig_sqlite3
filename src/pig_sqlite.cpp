@@ -1,5 +1,7 @@
 #include <pig_sqlite.h>
 
+#include "rng_builder.hpp"
+
 namespace pig_sqlite {
 using namespace sqlite_orm;  // NOLINT
 
@@ -19,8 +21,13 @@ auto SqliteImpl::getStorage() {
                                primary_key()),
                    make_column("mapId", &MapMarkInfo::mapId),
                    make_column("markType", &MapMarkInfo::markType),
-                   make_column("commit", &MapMarkInfo::commit)));
-
+                   make_column("commit", &MapMarkInfo::commit)),
+        make_table("table_area_mark_info",
+                   make_column("areaId", &AreaMarkInfo::areaId, autoincrement(),
+                               primary_key()),
+                   make_column("mapId", &AreaMarkInfo::mapId),
+                   make_column("areaType", &AreaMarkInfo::areaType),
+                   make_column("areaData", &AreaMarkInfo::areaData)));
     return storage;
 }
 
@@ -76,14 +83,14 @@ void SqliteImpl::setMapMarkInfo(const MapMarkInfo& info,
     MapMarkInfo tmp;
     tmp.commit.clear();
     tmp.markId = info.markId;
-    auto markVector = storage.get_all_pointer<MapMarkInfo>(
+    auto markInfos = storage.get_all_pointer<MapMarkInfo>(
         where(c(&MapMarkInfo::mapId) == info.mapId and /* NOLINT */
               c(&MapMarkInfo::markType) == info.markType));
-    if (markVector.size() != 0) {
+    if (markInfos.size() != 0) {
         // 已存在则替换
-        printf("mapId:{%s},markType:{%s}\r\n", info.mapId.c_str(),
-               info.markType.c_str());
-        tmp.markId = markVector.at(0)->markId;
+        printf("mapMark already exit mapId:{%s},markType:{%s}\r\n",
+               info.mapId.c_str(), info.markType.c_str());
+        tmp.markId = markInfos.at(0)->markId;
     }
     tmp.mapId = info.mapId;
     tmp.markType = info.markType;
@@ -108,7 +115,60 @@ std::string SqliteImpl::getMapMarkInfo(const std::string& mapId,
 
 bool SqliteImpl::delMapMarkInfo(const std::string& mapId) {
     auto storage = getStorage();
-    storage.remove_all<MapMarkInfo>(where(c(&MapMarkInfo::mapId) == mapId));
+    if (mapId != "") {
+        storage.remove_all<MapMarkInfo>(where(c(&MapMarkInfo::mapId) == mapId));
+    } else {
+        storage.remove_all<MapMarkInfo>();
+    }
+    return true;
+}
+
+void SqliteImpl::setAreaMarkInfo(const std::string& mapId,
+                                 AreaMarkType areaType,
+                                 const std::vector<char>& points) {
+    auto storage = getStorage();
+    AreaMarkInfo areaTmp;
+    areaTmp.areaData.clear();
+    areaTmp.areaId = RAND_INT(10000);
+    auto areaInfos = storage.get_all_pointer<AreaMarkInfo>(
+        where(c(&AreaMarkInfo::mapId) == mapId and /* NOLINT */
+              c(&AreaMarkInfo::areaType) == static_cast<int>(areaType)));
+    if (areaInfos.size() != 0) {
+        // 已存在则替换
+        printf("areaMsg already exit mapId:{%s},markType:{%d}\r\n",
+               mapId.c_str(), areaType);
+        areaTmp.areaId = areaInfos.at(0)->areaId;
+    }
+    areaTmp.mapId = mapId;
+    areaTmp.areaType = areaType;
+    areaTmp.areaData = std::move(points);
+    storage.replace(areaTmp);
+}
+
+std::vector<char> SqliteImpl::getAreaMarkInfo(const std::string& mapId,
+                                              AreaMarkType areaType) {
+    auto storage = getStorage();
+    auto mapInfos = storage.get_all_pointer<AreaMarkInfo>(
+        where(c(&AreaMarkInfo::mapId) == mapId and  // NOLINT
+              c(&AreaMarkInfo::areaType) == static_cast<int>(areaType)));
+    if (mapInfos.size() != 1) {
+        printf("undefine map infos num : {%ld}", mapInfos.size());
+        return {};
+    }
+    return mapInfos.at(0)->areaData;
+}
+
+bool SqliteImpl::delAreaMarkInfo(const std::string& mapId,
+                                 AreaMarkType areaType) {
+    auto storage = getStorage();
+    if (areaType == ALL_AREA) {
+        storage.remove_all<AreaMarkInfo>(
+            where(c(&AreaMarkInfo::mapId) == mapId));
+    } else {
+        storage.remove_all<AreaMarkInfo>(
+            where(c(&AreaMarkInfo::mapId) == mapId and  // NOLINT
+                  c(&AreaMarkInfo::areaType) == static_cast<int>(areaType)));
+    }
     return true;
 }
 

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace pig_sqlite {
 
@@ -19,6 +20,42 @@ struct MapMarkInfo {
     std::string mapId;
     std::string markType;
     std::string commit;
+};
+
+enum AreaMarkType : int {
+    ROOM = (0),
+    KITCHEN,
+    TOILET,
+
+    ALL_AREA  // 所有区域
+};
+
+class Point2D {
+public:
+    Point2D() = default;
+    Point2D(float x_, float y_) : m_x(x_), m_y(y_) {}
+
+    void display(void) {
+        std::cout << "m_x : " << m_x << "   "
+                  << "m_y : " << m_y << std::endl;
+    }
+
+    float x() const { return m_x; }
+    float y() const { return m_y; }
+
+    void set_x(float x) { m_x = x; }
+    void set_y(float y) { m_y = y; }
+
+public:
+    float m_x;
+    float m_y;
+};
+
+struct AreaMarkInfo {
+    int areaId;
+    std::string mapId;
+    int areaType;
+    std::vector<char> areaData;
 };
 
 class SqliteImpl {
@@ -48,6 +85,19 @@ public:
 
     // 删除对应地图的标记信息
     bool delMapMarkInfo(const std::string& mapId);
+
+    /*************** AreaMarkInfo 管理部分 ***************/
+    // 设置区域信息
+    void setAreaMarkInfo(const std::string& mapId, AreaMarkType areaType,
+                         const std::vector<char>& points);
+
+    // 获取对应区域信息
+    std::vector<char> getAreaMarkInfo(const std::string& mapId,
+                                      AreaMarkType areaType);
+
+    // 删除某一地图中的区域
+    bool delAreaMarkInfo(const std::string& mapId,
+                         AreaMarkType areaType = ALL_AREA);
 
 private:
     auto getStorage();
